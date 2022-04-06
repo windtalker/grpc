@@ -112,6 +112,7 @@ static void g_poller_unref() {
 }
 
 static void run_poller(void* arg, grpc_error* error) {
+  gpr_log(GPR_INFO, "Begin backup poller %p", arg);
   backup_poller* p = static_cast<backup_poller*>(arg);
   if (error != GRPC_ERROR_NONE) {
     if (error != GRPC_ERROR_CANCELLED) {
@@ -130,6 +131,7 @@ static void run_poller(void* arg, grpc_error* error) {
       grpc_pollset_work(p->pollset, nullptr, grpc_core::ExecCtx::Get()->Now());
   gpr_mu_unlock(p->pollset_mu);
   GRPC_LOG_IF_ERROR("Run client channel backup poller", err);
+  gpr_log(GPR_INFO, "Finish backup poller %p", arg);
   grpc_timer_init(&p->polling_timer,
                   grpc_core::ExecCtx::Get()->Now() + g_poll_interval_ms,
                   &p->run_poller_closure);
@@ -169,6 +171,7 @@ void grpc_client_channel_start_backup_polling(
   gpr_mu_unlock(&g_poller_mu);
 
   grpc_pollset_set_add_pollset(interested_parties, pollset);
+  gpr_log(GPR_INFO, "Start client poll at backup poller %p", g_poller);
 }
 
 void grpc_client_channel_stop_backup_polling(
